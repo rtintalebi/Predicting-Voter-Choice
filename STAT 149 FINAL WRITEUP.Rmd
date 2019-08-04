@@ -1,0 +1,217 @@
+---
+title: "STAT 149 Final Project"
+author: "Richa Chaturvedi, Kartik Papatla, Mirai Shah, Ramtin Talebi"
+date: "4/30/2018"
+output: pdf_document
+---
+
+\textbf{Introduction and Data Description}
+
+In the weeks and months leading up to the 2016 election, a number of pundits and political writers wrote off the possibility of a Trump victory due to the Trump campaign's underdeveloped voter analytics team.  Following the election, however, the narrative flipped -- suddenly experts agreed that it was the Democrats who had spent too much time looking at data, and not enough time talking to voters.  The truth actually lies somewhere in between.  Analytics can inform, not replace, political campaigns on both the national and the local level.
+
+Our goal in this project was to predict whether an individual voter would support Democrats in the 2016 election.  The original dataset had 45 different variables, ranging from education level to whether or not the person in question plays golf.
+
+Ultimately, we used a GAM (General Additive Model) with tuned parameters and significant interaction terms to come up with our final model.  Our results are presented below:
+
+```{r}
+# read in the data -- we use train3 and test3, which have the missing data imputed via a regression method
+train = read.csv('train3.csv')
+test = read.csv('test3.csv')
+head(train)
+
+#the test and train set that deal with the NAs have been preprocessed
+train.na = train
+test.na = test
+```
+
+Basic GAM model below:
+```{r}
+#gam
+library(gam)
+model1_gam = gam(suppdem ~ ., family = binomial, data = train.na)
+model1_gam_pred = data.frame(predict(model1_gam, newdata = test.na, type = "response"))
+summary(model1_gam)
+```
+
+AIC of the basic GAM model:
+```{r}
+#AIC
+scope_list = list("age"=~1+age+s(age),"party_reg_state"=~1+party_reg_state, 
+                  "party_primary_state"=~1+party_primary_state, "sex"=~1+sex,
+                  "combined_ethnicity_4way"=~1+combined_ethnicity_4way, "single"=~1+single, 
+                  "married"=~1+married, "num_children"=~1+num_children+s(num_children), 
+                  "children_3plus"=~1+children_3plus, "hasreligion"=~1+hasreligion,
+                  "catholic"=~1+catholic, "christian"=~1+christian, "bible_reader"=~1+bible_reader,
+                  "interest_in_religion"=~1+interest_in_religion, "donrever_1"=~1+donrever_1,
+                  "liberal_donor"=~1+liberal_donor, "conservative_donor"=~1+conservative_donor,
+                  "contbrel_1"=~1+contbrel_1, "contbpol_1"=~1+contbpol_1, 
+                  "contbhlt_1"=~1+contbhlt_1,
+                  "blue_collar"=~1+blue_collar, "farmer"=~1+farmer, 
+                  "professional_technical"=~1+professional_technical, "retired"=~1+retired,
+                  "apparel_1"=~1+apparel_1, "bookmusc_1"=~1+bookmusc_1, "electrnc_1"=~1+electrnc_1,
+                  "boatownr_1"=~1+boatownr_1, "cat_1"=~1+cat_1, "environm_1"=~1+environm_1,
+                  "outdgrdn_1"=~1+outdgrdn_1, "outdoor_1"=~1+outdoor_1, "guns_1"=~1+guns_1, 
+                  "golf_1"=~1+golf_1, "investor_1"=~1+investor_1, "veteran_1"=~1+veteran_1, 
+                  "expensive_items_1"=~1+expensive_items_1, 
+                  "cnty_pct_religious"=~1+cnty_pct_religious+s(cnty_pct_religious),
+                  "cnty_pct_evangelical"=~1+cnty_pct_evangelical+s(cnty_pct_evangelical),
+                  "district_status"=~1+district_status,
+                  "property_status"=~1+property_status,
+                  "collapsed_educ"=~1+collapsed_educ,
+                  "relative_income"=~1+relative_income+s(relative_income))
+output = step.gam(model1_gam, scope=scope_list,parallel=TRUE)
+```
+
+Anovas of significant additional terms:
+```{r}
+model_final_gam = gam(suppdem ~ s(age) + sex + combined_ethnicity_4way + 
+                        single + married + num_children + hasreligion + catholic + 
+                        christian + interest_in_religion + donrever_1 + liberal_donor + 
+                        conservative_donor + contbrel_1 + apparel_1 + boatownr_1 + 
+                        cat_1 + environm_1 + outdgrdn_1 + guns_1 + s(cnty_pct_religious) + 
+                        cnty_pct_evangelical + district_status + collapsed_educ + 
+                        relative_income, family = binomial, data = train.na, trace = FALSE)
+gam1 = gam(suppdem ~ s(age) + sex + combined_ethnicity_4way + 
+             single + married + num_children + hasreligion + catholic + 
+             christian + interest_in_religion + donrever_1 + liberal_donor + 
+             conservative_donor + contbrel_1 + apparel_1 + boatownr_1 + 
+             cat_1 + environm_1 + outdgrdn_1 + guns_1 + s(cnty_pct_religious) + 
+             cnty_pct_evangelical + district_status + collapsed_educ + 
+             relative_income + combined_ethnicity_4way*catholic,
+           family = binomial, data = train.na, trace = FALSE)
+anova(model_final_gam, gam1, test = "Chisq") #combined_ethnicity_4way*catholic IS significant
+gam10 = gam(suppdem ~ s(age) + sex + combined_ethnicity_4way + 
+             single + married + num_children + hasreligion + catholic + 
+             christian + interest_in_religion + donrever_1 + liberal_donor + 
+             conservative_donor + contbrel_1 + apparel_1 + boatownr_1 + 
+             cat_1 + environm_1 + outdgrdn_1 + guns_1 + s(cnty_pct_religious) + 
+             cnty_pct_evangelical + district_status + collapsed_educ + 
+             relative_income + combined_ethnicity_4way*catholic +
+             num_children*relative_income, 
+           family = binomial, data = train.na, trace = FALSE)
+anova(model_final_gam, gam10, test = "Chisq")
+anova(gam1, gam10) #num_children*relative_income IS significant
+gam15 = gam(suppdem ~ s(age) + sex + combined_ethnicity_4way + 
+              single + married + num_children + hasreligion + catholic + 
+              christian + interest_in_religion + donrever_1 + liberal_donor + 
+              conservative_donor + contbrel_1 + apparel_1 + boatownr_1 + 
+              cat_1 + environm_1 + outdgrdn_1 + guns_1 + s(cnty_pct_religious) + 
+              cnty_pct_evangelical + district_status + collapsed_educ + 
+              relative_income + combined_ethnicity_4way*catholic +
+              num_children*relative_income + single*collapsed_educ, 
+            family = binomial, data = train.na, trace = FALSE)
+anova(gam10, gam15) #single*collapsed_educ IS significant
+gam16 = gam(suppdem ~ s(age) + sex + combined_ethnicity_4way + 
+              single + married + num_children + hasreligion + catholic + 
+              christian + interest_in_religion + donrever_1 + liberal_donor + 
+              conservative_donor + contbrel_1 + apparel_1 + boatownr_1 + 
+              cat_1 + environm_1 + outdgrdn_1 + guns_1 + s(cnty_pct_religious) + 
+              cnty_pct_evangelical + district_status + collapsed_educ + 
+              relative_income + combined_ethnicity_4way*catholic +
+              num_children*relative_income + single*collapsed_educ +
+              single*collapsed_educ*s(age), 
+            family = binomial, data = train.na, trace = FALSE)
+anova(gam15, gam16) #single*collapsed_educ*s(age) IS significant
+```
+
+Cross validation (the tuning code will need to be above this):
+```{r}
+nsims=100
+n.train=8000
+n=nrow(train.na)
+measure1=measure2=measure3=measure4=rep(NA,nsims)
+
+for(i in 1:nsims){
+  reorder=sample(n) 
+  train=train.na[reorder[1:n.train],] 
+  validation=train.na[reorder[(n.train+1):n],] 
+  val_length = dim(validation)[1]
+  
+  model_final_gam = gam(suppdem ~ s(age) + sex + combined_ethnicity_4way + 
+                          single + married + num_children + hasreligion + catholic + 
+                          christian + interest_in_religion + donrever_1 + liberal_donor + 
+                          conservative_donor + contbrel_1 + apparel_1 + boatownr_1 + 
+                          cat_1 + environm_1 + outdgrdn_1 + guns_1 + s(cnty_pct_religious) + 
+                          cnty_pct_evangelical + district_status + collapsed_educ + 
+                          relative_income + liberal_donor*collapsed_educ +
+                          combined_ethnicity_4way*catholic + sex*combined_ethnicity_4way +
+                          guns_1*relative_income,
+                        family = binomial, data = train, trace = FALSE)
+  final_interaction_gam = gam(suppdem ~ s(age) + sex + combined_ethnicity_4way + 
+                                single + married + num_children + hasreligion + catholic + 
+                                christian + interest_in_religion + donrever_1 + liberal_donor + 
+                                conservative_donor + contbrel_1 + apparel_1 + boatownr_1 + 
+                                cat_1 + environm_1 + outdgrdn_1 + guns_1 + s(cnty_pct_religious) + 
+                                cnty_pct_evangelical + district_status + collapsed_educ + 
+                                relative_income + combined_ethnicity_4way*catholic +
+                                num_children*relative_income + single*collapsed_educ +
+                                single*collapsed_educ*s(age), 
+                              family = binomial, data = train, trace = FALSE)
+  model_final_gam_tuned = gam(suppdem ~ s(age) + sex + combined_ethnicity_4way + 
+                                single + married + num_children + hasreligion + catholic + 
+                                christian + interest_in_religion + donrever_1 + liberal_donor + 
+                                conservative_donor + contbrel_1 + apparel_1 + boatownr_1 + 
+                                cat_1 + environm_1 + outdgrdn_1 + guns_1 + s(cnty_pct_religious) + 
+                                cnty_pct_evangelical + district_status + collapsed_educ + 
+                                relative_income + liberal_donor*collapsed_educ +
+                                combined_ethnicity_4way*catholic + sex*combined_ethnicity_4way +
+                                guns_1*relative_income,epsilon = .001, bf.epsilon = .001,
+                              family = binomial, data = train, trace = FALSE)
+  final_interaction_gam_tuned = gam(suppdem ~ s(age) + sex + combined_ethnicity_4way + 
+                                single + married + num_children + hasreligion + catholic + 
+                                christian + interest_in_religion + donrever_1 + liberal_donor + 
+                                conservative_donor + contbrel_1 + apparel_1 + boatownr_1 + 
+                                cat_1 + environm_1 + outdgrdn_1 + guns_1 + s(cnty_pct_religious) + 
+                                cnty_pct_evangelical + district_status + collapsed_educ + 
+                                relative_income + combined_ethnicity_4way*catholic +
+                                num_children*relative_income + single*collapsed_educ +
+                                single*collapsed_educ*s(age), epsilon = .001, bf.epsilon = .001,
+                              family = binomial, data = train, trace = FALSE)
+  
+  predictions1 = predict(model_final_gam, newdata = validation, type = "response")
+  predictions2 = predict(final_interaction_gam, newdata = validation, type = "response")
+  predictions3 = predict(model_final_gam_tuned, newdata = validation, type = "response")
+  predictions4 = predict(final_interaction_gam_tuned, newdata = validation, type = "response")
+  
+  validation$suppdem = ifelse(validation$suppdem=="Y", 1, 0)
+  measure1[i]=-1/val_length * sum(validation$suppdem * log(predictions1) +
+                                    (1 - validation$suppdem) * 
+                                    log(1 - predictions1))
+  measure2[i]=-1/val_length * sum(validation$suppdem * log(predictions2) +
+                                    (1 - validation$suppdem) * 
+                                    log(1 - predictions2))
+  measure3[i]=-1/val_length * sum(validation$suppdem * log(predictions3) +
+                                    (1 - validation$suppdem) * 
+                                    log(1 - predictions3))
+  measure4[i]=-1/val_length * sum(validation$suppdem * log(predictions4) +
+                                    (1 - validation$suppdem) * 
+                                    log(1 - predictions4))
+}
+mean_model1 = mean(measure1)
+mean_model2 = mean(measure2)
+mean_model3 = mean(measure3)
+mean_model4 = mean(measure4)
+```
+
+Final model selected:
+```{r}
+final_interaction_gam_tuned = gam(suppdem ~ s(age) + sex + combined_ethnicity_4way + 
+                                    single + married + num_children + hasreligion + catholic + 
+                                    christian + interest_in_religion + donrever_1 + liberal_donor + 
+                                    conservative_donor + contbrel_1 + apparel_1 + boatownr_1 + 
+                                    cat_1 + environm_1 + outdgrdn_1 + guns_1 + s(cnty_pct_religious) + 
+                                    cnty_pct_evangelical + district_status + collapsed_educ + 
+                                    relative_income + combined_ethnicity_4way*catholic +
+                                    num_children*relative_income + single*collapsed_educ +
+                                    single*collapsed_educ*s(age), epsilon = .001, bf.epsilon = .001,
+                                  family = binomial, data = train.na, trace = FALSE)
+final_interaction_gam_tuned_pred = predict(final_interaction_gam_tuned, newdata = test.na, type = "response")
+
+
+```
+
+```{r}
+vif
+```
+
+
