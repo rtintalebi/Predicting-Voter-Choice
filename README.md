@@ -24,11 +24,14 @@ Preliminary visualizations of the quantitative variables show some noteworthy tr
 
 For instance, the age distribution of voters supporting Democrats vs. the age distribution of those not supporting Democrats in the 2016 election are quite different, with younger voters tending to support Democrats over older ones.
 
-![Engagements by Post Type](md-images/Density-Plot-1.png)
+![Income Distribution vs. Democratic Support](md-images/Density-Plot-1.png)
 
 In addition, voters living in more religious communities tended not to support Democrats while voters in less religious communities tended to support Democrats.
 
+![Reiligous Distribution vs. Democratic Support](md-images/Density-Plot-2.png)
 
+Lastly, it appears that individuals living in areas with lower median incomes were more likely to support Democrats.
 
-Lastly, it appears that individuals living in areas with lower median incomes were more likely to support Democrats. We also
-visualized the relationship between pairs of predictor variables to gain a sense of the best interaction terms (Appendix B). For instance, although we initially assumed a majority of veterans would support guns, we found that many veterans in fact had no interest in guns
+![Age Distribution vs. Democratic Support](md-images/Density-Plot-3.png)
+
+We also visualized the relationship between pairs of predictor variables to gain a sense of the best interaction terms (Appendix B). For instance, although we initially assumed a majority of veterans would support guns, we found that many veterans in fact had no interest in guns
