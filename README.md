@@ -18,7 +18,7 @@ contains mostly complete observations. Only 5 out of these 47 variables are cont
 Ultimately, after performing EDA, we constructed a GAM (General Additive Model) with carefully selected main effects, tuned parameters, and significant interaction terms for our final model, yielding a log-loss score of 0.58096.
 
 
-# Exploratory Data Analysis
+### Exploratory Data Analysis
 
 Preliminary visualizations of the quantitative variables show some noteworthy trends.
 
