@@ -54,6 +54,7 @@ We first built a wide array of models, from basic GLMs (General Linear Models) w
 In order to train and validate that a GAM would yield the best predictions on the test set, we performed cross-validation, using the log-loss evaluation metric. This entailed fitting the model on a randomly chosen 90% of the training data, using the model to predict on the remaining 10% of the data, calculating the log-loss, and iterating 100 times, as follows:
 
 ```{r}
+# Create looping
 nsims=100
 n.train=8000
 n=nrow(train.na)
@@ -64,6 +65,7 @@ for(i in 1:nsims){
   validation=train.na[reorder[(n.train+1):n],] 
   val_length = dim(validation)[1]
   
+  # Four GAMs for validation
   model_final_gam = gam(suppdem ~ s(age) + sex + combined_ethnicity_4way + 
                           single + married + num_children + hasreligion + catholic + 
                           christian + interest_in_religion + donrever_1 + liberal_donor + 
@@ -105,6 +107,7 @@ for(i in 1:nsims){
                                 single*collapsed_educ*s(age), epsilon = .001, bf.epsilon = .001,
                               family = binomial, data = train, trace = FALSE)
   
+  # Calculate predicted values for each
   predictions1 = predict(model_final_gam, newdata = validation, type = "response")
   predictions2 = predict(final_interaction_gam, newdata = validation, type = "response")
   predictions3 = predict(model_final_gam_tuned, newdata = validation, type = "response")
@@ -124,6 +127,8 @@ for(i in 1:nsims){
                                     (1 - validation$suppdem) * 
                                     log(1 - predictions4))
 }
+
+# Calculate mean log-loss over all iterations
 mean_model1 = mean(measure1)
 mean_model2 = mean(measure2)
 mean_model3 = mean(measure3)
@@ -137,3 +142,4 @@ To evaluate our model's susceptibility to outliers, we also did some diagnostic 
 
 ![Cooks](md-images/Cook's-Distance.png)
 
+Looks like our model holds up to outliers!
