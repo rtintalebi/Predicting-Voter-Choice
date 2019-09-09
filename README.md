@@ -143,3 +143,11 @@ To evaluate our model's susceptibility to outliers, we also did some diagnostic 
 ![Cooks](md-images/Cook's-Distance.png)
 
 Looks like our model holds up to outliers!
+
+### Insights
+
+Below are the effects of some of the predictors of our model:
+
+![Coefficients](md-images/Coefficients.png)
+
+Certain predictors had coefficient estimates that were not only interpretable, but consistent with established research. For example, liberal_donor has a large positive coefficient while guns_1 and conservative_donor had large negative ones. Beyond individual predictors that were either smoothed or left parameterized, some of the interaction terms are worth nothing as well. Research shows that the Catholic vote is generally split across party lines, but that minority Catholics generally are left-leaning. This might explain why ethnicity interacted with Catholic in our model has a large, positive coefficient. 
