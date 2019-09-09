@@ -10,9 +10,9 @@ Obtained from BlueLabs, the original dataset has 47 different variables, ranging
 
 ### Approach
 
-In the weeks and months leading up to the 2016 election, a number of pundits and political writers wrote off the possibility of a Trump victory due to the Trump campaign's underdeveloped voter analytics team. Following the election, however, the narrative flipped – suddenly experts agreed that it was the Democrats who had spent too much time looking at data, and not enough time talking to voters. The truth actually lies somewhere in between. Analytics can inform, not replace, political campaigns on both the national and the local level. To gain a better sense
+In the weeks and months leading up to the 2016 election, a number of pundits and political writers wrote off the possibility of a Trump victory due to the Trump campaign's underdeveloped voter analytics team. Following the election, however, the narrative flipped – suddenly experts agreed that it was the Democrats who had spent too much time looking at data, and not enough time talking to voters. The truth actually lies somewhere in between. Analytics can inform, not replace, political campaigns on both the national and the local level. Thus, to gain a better sense of political sentiment, our goal in this project is to predict whether an individual voter would support Democrats in the 2016 election.
 
-Thus, to gain a better sense of political sentiment, our goal in this project is to predict whether an individual voter would support Democrats in the 2016 election. Obtained from BlueLabs, the original dataset has 47 different variables, ranging from education level to whether or not the person in question plays golf. Apart from the education predictor, in which 10% of its values were missing, the dataset
+Obtained from BlueLabs, the original dataset has 47 different variables, ranging from education level to whether or not the person in question plays golf. Apart from the education predictor, in which 10% of its values were missing, the dataset
 contains mostly complete observations. Only 5 out of these 47 variables are continuous and quantitative (ppi, median_census_income, cnty_pct_evangelical, cnty_pcy_religious), while the other 42 are categorical or binary. 
 
 Ultimately, after performing EDA and structuring some messy data, we constructed a GAM (General Additive Model) with carefully selected main effects, tuned parameters, and significant interaction terms for our final model, yielding a log-loss score of 0.58096.
@@ -39,15 +39,19 @@ We also visualized the relationship between pairs of predictor variables to gain
 
 ### Dealing with Messy Data
 
-Four predictors had missing values – age, percent of the county that is religious, percent of the county that is evangelical, and education status. While the first three variables only had a handful of missing values (19, 2, and 5 respectively), education had 943 missing values, equivalent to nearly 10% of the entire dataset. We originally handled this missing data using the na.convert.mean function provided by our. This method imputes missing values in quantitative predictors with the mean of the remaining data in that column, and adds an additional column of 1’s and 0’s that identifies whether or not an observation is missing a value for that specific predictor. The function handles categorical predictors by adding an extra level to the predictor that represents NA values.
+Four predictors had missing values – age, percent of the county that is religious, percent of the county that is evangelical, and education status. While the first three variables only had a handful of missing values (19, 2, and 5 respectively), education had 943 missing values, equivalent to nearly 10% of the entire dataset.
+
+We used two methods to deal with the missing data:
+
+1) We originally handled this missing data using a na.convert.mean function. This method imputes missing values in quantitative predictors with the mean of the remaining data in that column, and adds an additional column of 1’s and 0’s that identifies whether or not an observation is missing a value for that specific predictor. The function handles categorical predictors by adding an extra level to the predictor that represents NA values.
+
+2) Later, we regressed the available education data on the other predictors. We then used this regression to predict and impute values for the missing data using the “mice” package.
 
 ### Code Snippets — Model Validation
 
-We first built a wide array of models, from basic GLMs (General Linear Models) with all 47 predictors to complex random forests with transformed variables and tuned parameters. Although likelihood ratio tests and analyses of deviance were often useful in determining the best predictors to include in the model, these tests generally indicate which models are better for inference, not necessarily for prediction.
+We first built a wide array of models, from basic GLMs (General Linear Models) with all 47 predictors to complex random forests with transformed variables and tuned parameters. After some initial validation, we settled on a generalized addiditive model (GAM) with smoothed predictors and interaction terms.
 
-Thus, in order to determine which models would yield the best predictions on the test set, we performed cross-validation, using the log-loss evaluation metric provided in the project description. This entailed fitting the model on a randomly chosen 90% of the training data, using the model to predict on the remaining 10% of the data, and then calculating the log-loss. 
-
-In order to train and validate our Random Forest model, we first divide our training set by post type, and then within each division, we subset a small testing data set from our full training set and use it to calculate the MAPE.
+In order to train and validate that a GAM would yield the best predictions on the test set, we performed cross-validation, using the log-loss evaluation metric. This entailed fitting the model on a randomly chosen 90% of the training data, using the model to predict on the remaining 10% of the data, calculating the log-loss, and iterating 100 times, as follows:
 
 ```{r}
 nsims=100
@@ -125,3 +129,9 @@ mean_model2 = mean(measure2)
 mean_model3 = mean(measure3)
 mean_model4 = mean(measure4)
 ```
+Our final log-loss from our chosen model, with smoothed predictors and interaction terms, was about 0.59.
+
+### Model Diagnostics
+
+To evaluate our model's susceptibility to outliers, we also did some diagnostic work, like evaluating Cook's distance:
+
