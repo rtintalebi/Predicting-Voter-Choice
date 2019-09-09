@@ -135,3 +135,5 @@ Our final log-loss from our chosen model, with smoothed predictors and interacti
 
 To evaluate our model's susceptibility to outliers, we also did some diagnostic work, like evaluating Cook's distance:
 
+![Cooks](md-images/Cook's-Distance.png)
+
