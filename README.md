@@ -6,7 +6,7 @@ Project Participants: Ramtin Talebi, Richa Chaturvedi, Kartik Papatla, Mirai Sha
 
 This project, part of a Kaggle competition and the final project for a course in generalized linear models, predicts whether an individual voter would support Democrats in the 2016 election using a generalized additive model.
 
-Obtained from BlueLabs, the original dataset has 47 different variables, ranging from education level to whether or not the person in question plays golf. Submissions were ultimately judged based on log-loss predictive error on the holdout set.
+Obtained from BlueLabs, the original dataset has 47 different variables, ranging from education level to whether or not the person in question plays golf. Submissions were ultimately judged based on log-loss predictive error on the holdout set provided by BlueLabs.
 
 ### Approach
 
@@ -51,7 +51,7 @@ We used two methods to deal with the missing data:
 
 We first built a wide array of models, from basic GLMs (General Linear Models) with all 47 predictors to complex random forests with transformed variables and tuned parameters. After some initial validation, we settled on a generalized addiditive model (GAM) with smoothed predictors and interaction terms.
 
-In order to train and validate that a GAM would yield the best predictions on the test set, we performed cross-validation, using the log-loss evaluation metric. This entailed fitting the model on a randomly chosen 90% of the training data, using the model to predict on the remaining 10% of the data, calculating the log-loss, and iterating 100 times, as follows:
+In order to train and validate that a GAM would yield the best predictions on the test set, we performed cross-validation, using the log-loss evaluation metric. This entailed fitting the model on a randomly chosen 90% of the training data (contained in train3.csv), using the model to predict on the remaining 10% of the data (contained in test3.csv), calculating the log-loss, and iterating 100 times, as follows:
 
 ```{r}
 # Create looping
@@ -134,7 +134,7 @@ mean_model2 = mean(measure2)
 mean_model3 = mean(measure3)
 mean_model4 = mean(measure4)
 ```
-Our final log-loss from our chosen model, with smoothed predictors and interaction terms, was about 0.59.
+Our final log-loss from our chosen model, with smoothed predictors and interaction terms, on the holdout data provided by BlueLabs was about 0.59.
 
 ### Model Diagnostics
 
