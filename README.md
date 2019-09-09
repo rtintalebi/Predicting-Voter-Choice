@@ -34,4 +34,9 @@ Lastly, it appears that individuals living in areas with lower median incomes we
 
 ![Income Distribution vs. Democratic Support](md-images/Density-Plot-1.png)
 
-We also visualized the relationship between pairs of predictor variables to gain a sense of the best interaction terms (Appendix B). For instance, although we initially assumed a majority of veterans would support guns, we found that many veterans in fact had no interest in guns
+We also visualized the relationship between pairs of predictor variables to gain a sense of the best interaction terms. For instance, although we initially assumed a majority of veterans would support guns, we found that many veterans in fact had no interest in guns.
+
+![Veterans vs. Gun Support](md-images/Collinearity-Plot-1.png)
+
+### Code Snippets — Model Validation
+
